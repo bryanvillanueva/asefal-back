@@ -1,0 +1,45 @@
+🗺️ Hoja de Ruta: Backend con Node.js, Express y Sequelize
+🏗️ Fase 1: Los Cimientos (Configuración del Server)
+Antes de crear endpoints, necesitamos "la casa" donde vivirán.
+
+Levantar Express: Configurar el archivo de entrada (index.js o app.js).
+
+Middlewares esenciales: Configurar cors (para que el frontend pueda pedir datos) y express.json() (para leer lo que te envíen en el cuerpo de las peticiones).
+
+Prueba de vida: Crear una ruta simple / que responda "API funcionando".
+
+🧠 Fase 2: Inteligencia de Datos (Modelos y Relaciones)
+Ya tienes las tablas (gracias a las migraciones), pero Sequelize necesita saber cómo "hablar" con ellas y cómo se relacionan entre sí.
+
+Verificación de Modelos: Asegurar que los archivos en /models coincidan con las tablas de la base de datos.
+
+Asociaciones: Definir las relaciones dentro de los modelos (ej: Un Usuario tiene muchas Órdenes, Un Producto pertenece a una Categoría). Esto es vital para poder hacer consultas complejas (JOINs) fácilmente.
+
+🚦 Fase 3: Arquitectura MVC (Estructura de Carpetas)
+Para no escribir todo el código en un solo archivo, organizaremos el proyecto.
+
+Controllers: Crear la carpeta /controllers. Aquí va la lógica (ej: la función que busca usuarios en la DB).
+
+Routes: Crear la carpeta /routes. Aquí se definen las URL (ej: GET /usuarios).
+
+Vinculación: Conectar las rutas con los controladores y estos con app.js.
+
+🔍 Fase 4: Primeros Endpoints (Lectura de Datos - GET)
+Aquí es donde veremos la magia de tus seeds.
+
+Ruta Index: Obtener todos los registros (ej: GET /api/users).
+
+Ruta Show: Obtener un registro por ID (ej: GET /api/users/1).
+
+Filtrado básico: Probar consultas sencillas con Sequelize (where, attributes).
+
+🔐 Fase 5: Seguridad y Escritura (Auth y POST/PUT/DELETE)
+Una vez que podemos leer, necesitamos escribir y proteger.
+
+Registro y Login: Crear endpoints para registrar usuarios y loguearse.
+
+Encriptación: Configurar bcrypt para comparar contraseñas (hash).
+
+Token (JWT): Generar un token cuando el usuario se loguea para que pueda acceder a rutas privadas.
+
+CRUD Completo: Terminar las rutas de Crear, Actualizar y Borrar para el resto de entidades.

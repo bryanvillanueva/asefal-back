@@ -1,0 +1,80 @@
+Documentación Técnica: Sistema de Gestión Torneo ASEFAL1. Alcance del Proyecto El objetivo es desarrollar una plataforma web integral para la gestión del torneo de fútbol ASEFAL. El sistema debe permitir la administración centralizada de la información (Backoffice) y la visualización pública de resultados (Frontend Público).
+
+Actores Principales:
+Administrador: Gestiona torneos, categorías, sedes y usuarios.
+Delegado (Club): Gestiona la inscripción de sus jugadores y cuerpo técnico.
+Planillero: Registra los sucesos del partido en tiempo real (goles, tarjetas, cambios).
+Público General: Consulta tablas de posiciones, calendarios y resultados.
+
+2. Arquitectura de Base de Datos (MySQL)El modelo es relacional para garantizar la integridad de los datos competitivos.
+Tablas y Campos Principales 
+
+roles: Gestión de permisos. Campos: id, nombre (ADMIN, DELEGADO, PLANILLERO), descripcion.
+
+usuarios: Acceso al sistema. Campos: id, nombre_completo, email, password_hash, rol_id, activo.
+
+torneos: Ediciones del campeonato. Campos: id, nombre, fecha_inicio, fecha_fin, estado.
+
+categorias: Divisiones por edad (ej. 2010, 2012). Campos: id, nombre, ano_nacimiento_limite, torneo_id.
+
+sedes: Lugares de juego. Campos: id, nombre, direccion, ciudad.
+
+clubes: Entidades deportivas. Campos: id, nombre, logo_url, delegado_usuario_id.
+
+equipos: Instancia competitiva de un club en una categoría. Campos: id, club_id, categoria_id, nombre_equipo, grupo.
+
+jugadores: Datos biográficos. Campos: id, nombre_completo, fecha_nacimiento, documento_id, eps, foto_url.
+
+inscripciones: Vinculación Jugador-Equipo. Campos: id, jugador_id, equipo_id, numero_camiseta, posicion, validado_admin.
+
+partidos: Fixture y resultados. Campos: id, equipo_local_id, equipo_visitante_id, sede_id, fecha_hora, estado, goles_local, goles_visitante, jornada, planillero_id.
+
+eventos_partido: Minuto a minuto. Campos: id, partido_id, jugador_id, equipo_id, tipo_evento (GOL, TARJETA, ETC), minuto.
+
+3. Especificaciones del Backend (API REST)El backend actuará como el proveedor de datos y lógica de negocio. Lenguaje: Node.jsFramework: Express.jsORM: Sequelize (para facilitar relaciones y validaciones).
+Base de Datos: MySQL.
+
+Configuración de Infraestructura (Railway)URL de Producción: https://asefal-back-production.up.railway.app Variables de Entorno (Environment Variables):No se usará archivo .env en producción. Se configurarán en el panel de Railway:DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT, JWT_SECRET: Clave secreta para firmar tokens. PORT: Puerto del servidor (generalmente proporcionado por Railway).
+
+Módulos Clave 
+
+Autenticación: Uso de JWT (JSON Web Tokens). Middleware verifyToken para proteger rutas privadas. Middleware checkRole(['ADMIN', 'PLANILLERO']) para permisos específicos. Hashing de contraseñas con bcryptjs.Gestión de Archivos:Librería multer para subida de fotos (jugadores) y logos (clubes). Nota: Se recomienda conectar a un servicio como Cloudinary o AWS S3 para no llenar el disco de Railway. Seguridad:Implementación de cors para permitir peticiones solo desde el dominio del Frontend. Validación de datos de entrada con express-validator o zod.4. 
+
+Especificaciones del Frontend (Cliente Web)La interfaz se dividirá en dos grandes áreas: Pública (informativa) y Privada (administrativa).Framework: Next.js (App Router).
+Librería de Componentes: Material UI (MUI v5).Tipografía: Montserrat (Google Fonts). 
+Sistema de Diseño (Design System)Basado en la identidad de ASEFAL.
+
+Colores: 
+
+Rojo (Primario)#f33939 Botones principales, Navbar, Títulos destacados.
+
+Blanco Humo #fafafa Fondo general de la aplicación (Background).
+
+Negro #000000 Textos principales, Títulos de secciones.
+
+Gris Medio #7d7d7d Textos secundarios, bordes sutiles, iconos inactivos.
+
+Pantallas y Estructura
+
+A. Zona Pública (Accesible a todos)Landing Page (Inicio):Hero section con imagen del torneo.
+Accesos rápidos a "Resultados de hoy" y "Tabla de Posiciones".
+
+Fixture / Calendario:Filtros por Categoría y Fecha. Tarjetas de partido mostrando escudos, hora y sede.
+
+Detalle del Partido:Marcador final.Lista de eventos (goles, tarjetas).Alineaciones (si están disponibles).
+
+Tablas de Posiciones:Tabla clásica (PJ, PG, PE, PP, GF, GC, DG, PTS). Renderizado automático basado en los resultados.
+
+B. Zona Privada (Requiere Login)Login:Formulario simple (Email/Password).
+
+Dashboard Admin:Resumen: Partidos jugados hoy, estado del torneo.Gestor de Torneos: Crear/Editar torneos y categorías.Gestor de Clubes: Alta de clubes y asignación de usuarios delegados.Validación de Jugadores: Lista de jugadores pendientes de aprobación (verificar documentos).
+
+Panel del Planillero (Móvil First):Lista de partidos asignados al usuario.Interfaz "En Juego": Pantalla optimizada con botones grandes para registrar goles y tarjetas rápidamente mientras ocurre el partido.
+
+5. Pasos de Implementación Sugeridos 
+
+Base de Datos: Ejecutar script SQL en local y luego importar en Railway.
+
+Backend:Inicializar proyecto npm init.Instalar dependencias (express, sequelize, mysql2, cors, dotenv).Configurar modelos Sequelize.Crear rutas de Auth y CRUD básico.Desplegar a Railway.
+
+Frontend:Inicializar npx create-next-app@latest.Instalar MUI (@mui/material @emotion/react @emotion/styled).Configurar tema global (Colores y Fuente Montserrat).Crear componentes base (Navbar, Footer, MatchCard).Integrar con API del Backend.
