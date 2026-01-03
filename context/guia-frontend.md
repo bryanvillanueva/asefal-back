@@ -65,7 +65,169 @@ fetch('https://asefal-back-production.up.railway.app/api/health')
 
 ---
 
-### 2. Roles
+### 2. Autenticación
+
+#### `POST /api/auth/login`
+Iniciar sesión con email y contraseña
+
+**Cuerpo de la petición:**
+```json
+{
+  "email": "admin@test.com",
+  "password": "password123"
+}
+```
+
+**Ejemplo:**
+```javascript
+const login = async (email, password) => {
+  const response = await fetch('https://asefal-back-production.up.railway.app/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await response.json();
+
+  if (data.success) {
+    // Guardar token en localStorage o cookie
+    localStorage.setItem('token', data.data.token);
+    localStorage.setItem('user', JSON.stringify(data.data.usuario));
+  }
+
+  return data;
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "success": true,
+  "message": "Login exitoso",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "usuario": {
+      "id": 1,
+      "nombre_completo": "Administrador",
+      "email": "admin@test.com",
+      "activo": true,
+      "rol": {
+        "id": 1,
+        "nombre": "ADMIN",
+        "descripcion": "Super Administrador"
+      }
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `400` - Email o password no proporcionados
+- `401` - Credenciales inválidas
+- `403` - Usuario inactivo
+
+#### `POST /api/auth/register`
+Registrar un nuevo usuario
+
+**Cuerpo de la petición:**
+```json
+{
+  "nombre_completo": "Juan Pérez",
+  "email": "juan@example.com",
+  "password": "password123",
+  "rol_id": 2
+}
+```
+
+**Ejemplo:**
+```javascript
+const register = async (userData) => {
+  const response = await fetch('https://asefal-back-production.up.railway.app/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(userData)
+  });
+  const data = await response.json();
+
+  if (data.success) {
+    localStorage.setItem('token', data.data.token);
+    localStorage.setItem('user', JSON.stringify(data.data.usuario));
+  }
+
+  return data;
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "success": true,
+  "message": "Usuario registrado exitosamente",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "usuario": {
+      "id": 2,
+      "nombre_completo": "Juan Pérez",
+      "email": "juan@example.com",
+      "activo": true,
+      "rol": {
+        "id": 2,
+        "nombre": "DELEGADO",
+        "descripcion": "Representante del Club"
+      }
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `400` - Campos requeridos faltantes o rol inválido
+- `409` - Email ya registrado
+
+#### `GET /api/auth/profile`
+Obtener perfil del usuario autenticado (requiere token)
+
+**Ejemplo:**
+```javascript
+const getProfile = async () => {
+  const token = localStorage.getItem('token');
+
+  const response = await fetch('https://asefal-back-production.up.railway.app/api/auth/profile', {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  return await response.json();
+}
+```
+
+**Respuesta:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "nombre_completo": "Administrador",
+    "email": "admin@test.com",
+    "rol_id": 1,
+    "activo": true,
+    "created_at": "2026-01-02T00:00:00.000Z",
+    "rol": {
+      "id": 1,
+      "nombre": "ADMIN",
+      "descripcion": "Super Administrador"
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `401` - Token no proporcionado
+- `403` - Token inválido o expirado
+
+---
+
+### 3. Roles
 
 #### `GET /api/roles`
 Obtener todos los roles del sistema
@@ -118,7 +280,7 @@ const getRolById = async (id) => {
 
 ---
 
-### 3. Usuarios
+### 4. Usuarios
 
 #### `GET /api/usuarios`
 Listar todos los usuarios (sin contraseñas)
@@ -225,7 +387,7 @@ const deleteUsuario = async (id) => {
 
 ---
 
-### 4. Torneos
+### 5. Torneos
 
 #### `GET /api/torneos`
 Listar todos los torneos con sus categorías
@@ -304,7 +466,7 @@ Eliminar un torneo
 
 ---
 
-### 5. Clubes
+### 6. Clubes
 
 #### `GET /api/clubes`
 Listar todos los clubes con sus equipos y delegado
@@ -374,7 +536,7 @@ Eliminar un club
 
 ---
 
-### 6. Sedes
+### 7. Sedes
 
 #### `GET /api/sedes`
 Listar todas las sedes
@@ -439,7 +601,7 @@ Eliminar una sede
 
 ---
 
-### 7. Partidos
+### 8. Partidos
 
 #### `GET /api/partidos`
 Listar todos los partidos con información completa
@@ -567,39 +729,95 @@ Eliminar un partido
 // lib/api.js
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://asefal-back-production.up.railway.app';
 
+// Helper para obtener headers con token
+const getHeaders = () => {
+  const token = localStorage.getItem('token');
+  const headers = { 'Content-Type': 'application/json' };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return headers;
+};
+
 export const api = {
-  async get(endpoint) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`);
+  async get(endpoint, useAuth = false) {
+    const headers = useAuth ? getHeaders() : {};
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers });
     if (!response.ok) throw new Error('Error en la petición');
     return await response.json();
   },
 
-  async post(endpoint, data) {
+  async post(endpoint, data, useAuth = false) {
+    const headers = useAuth ? getHeaders() : { 'Content-Type': 'application/json' };
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(data)
     });
     if (!response.ok) throw new Error('Error en la petición');
     return await response.json();
   },
 
-  async put(endpoint, data) {
+  async put(endpoint, data, useAuth = false) {
+    const headers = useAuth ? getHeaders() : { 'Content-Type': 'application/json' };
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(data)
     });
     if (!response.ok) throw new Error('Error en la petición');
     return await response.json();
   },
 
-  async delete(endpoint) {
+  async delete(endpoint, useAuth = false) {
+    const headers = useAuth ? getHeaders() : {};
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers
     });
     if (!response.ok) throw new Error('Error en la petición');
     return await response.json();
+  }
+};
+
+// Funciones de autenticación
+export const auth = {
+  async login(email, password) {
+    const response = await api.post('/api/auth/login', { email, password });
+    if (response.success) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.usuario));
+    }
+    return response;
+  },
+
+  async register(userData) {
+    const response = await api.post('/api/auth/register', userData);
+    if (response.success) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.usuario));
+    }
+    return response;
+  },
+
+  async getProfile() {
+    return await api.get('/api/auth/profile', true);
+  },
+
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  },
+
+  getUser() {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  },
+
+  isAuthenticated() {
+    return !!localStorage.getItem('token');
   }
 };
 ```

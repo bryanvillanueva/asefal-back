@@ -21,6 +21,7 @@ app.get('/', (req, res) => {
         description: 'Sistema de Gestión de Torneos de Fútbol',
         endpoints: {
             health: '/api/health',
+            auth: '/api/auth (login, register, profile)',
             usuarios: '/api/usuarios',
             roles: '/api/roles',
             torneos: '/api/torneos',

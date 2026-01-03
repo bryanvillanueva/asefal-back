@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 // Importar rutas
+const authRoutes = require('./authRoutes');
 const usuarioRoutes = require('./usuarioRoutes');
 const rolRoutes = require('./rolRoutes');
 const torneoRoutes = require('./torneoRoutes');
@@ -10,6 +11,7 @@ const sedeRoutes = require('./sedeRoutes');
 const partidoRoutes = require('./partidoRoutes');
 
 // Definir rutas base
+router.use('/auth', authRoutes);
 router.use('/usuarios', usuarioRoutes);
 router.use('/roles', rolRoutes);
 router.use('/torneos', torneoRoutes);
@@ -24,6 +26,7 @@ router.get('/health', (req, res) => {
     message: 'API ASEFAL funcionando correctamente',
     timestamp: new Date(),
     endpoints: {
+      auth: '/api/auth',
       usuarios: '/api/usuarios',
       roles: '/api/roles',
       torneos: '/api/torneos',
